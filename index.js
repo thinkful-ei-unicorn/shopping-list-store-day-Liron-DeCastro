@@ -15,7 +15,7 @@ const generateItemElement = function (item) {
   if(item.edit === true) {
     return `<li class='js-item-element' data-item-id='${item.id}'>
     <form id="js-shopping-edit-form">
-      <input type="text" name="shopping-edit-entry" class="js-shopping-edit-entry" placeholder="Edit Item">
+      <input type="text" name="shopping-edit-entry" class="js-shopping-edit-entry" placeholder="Edit Item" required>
       <br><button type="submit">Edit Item</button><button class="cancel-edit">Cancel Edit</button>
     </form>
     </li>`
