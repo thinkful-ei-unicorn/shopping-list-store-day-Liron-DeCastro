@@ -1,21 +1,31 @@
 const store = {
   items: [
-    { id: cuid(), name: 'apples', checked: false },
-    { id: cuid(), name: 'oranges', checked: false },
-    { id: cuid(), name: 'milk', checked: true },
-    { id: cuid(), name: 'bread', checked: false }
+    { id: cuid(), name: 'apples', checked: false, edit: false },
+    { id: cuid(), name: 'oranges', checked: false, edit: false },
+    { id: cuid(), name: 'milk', checked: true, edit: false },
+    { id: cuid(), name: 'bread', checked: false, edit: false }
   ],
   hideCheckedItems: false
 };
 
+
+//edited this so it'll change into a text box for editing
 const generateItemElement = function (item) {
   let itemTitle = `<span class='shopping-item shopping-item__checked'>${item.name}</span>`;
+  if(item.edit === true) {
+    return `<li class='js-item-element' data-item-id='${item.id}'>
+    <form id="js-shopping-edit-form">
+      <input type="text" name="shopping-edit-entry" class="js-shopping-edit-entry" placeholder="Edit Item">
+      <br><button type="submit">Edit Item</button><button class="cancel-edit">Cancel Edit</button>
+    </form>
+    </li>`
+  }
+
   if (!item.checked) {
     itemTitle = `
      <span class='shopping-item'>${item.name}</span>
     `;
-  }
-
+  } 
   return `
     <li class='js-item-element' data-item-id='${item.id}'>
       ${itemTitle}
@@ -26,6 +36,9 @@ const generateItemElement = function (item) {
         <button class='shopping-item-delete js-item-delete'>
           <span class='button-label'>delete</span>
         </button>
+        <button class='shopping-item-edit js-item-edit'>
+        <span class='button-label'>edit</span>
+      </button>
       </div>
     </li>`;
 };
@@ -63,7 +76,7 @@ const render = function () {
 };
 
 const addItemToShoppingList = function (itemName) {
-  store.items.push({ id: cuid(), name: itemName, checked: false });
+  store.items.push({ id: cuid(), name: itemName, checked: false, edit: false });
 };
 
 const handleNewItemSubmit = function () {
@@ -76,9 +89,36 @@ const handleNewItemSubmit = function () {
   });
 };
 
+
+//function for changing the name
+const editListItem = function (id, newName) {
+  const index = store.items.findIndex(item => item.id === id);
+  store.items[index].name = newName;
+  store.items[index].edit = false;
+}
+
+
+//edit name button function
+const handleEditItem = function () {
+  $('#js-shopping-edit-form').submit(function (event) {
+    event.preventDefault();
+    const editedName = $('.js-shopping-edit-entry').val();
+    $('.js-shopping-edit-entry').val('');
+    const id = getItemIdFromElement(event.currentTarget);
+    editListItem(id, editedName);
+    render();
+  });
+};
+
 const toggleCheckedForListItem = function (id) {
   const foundItem = store.items.find(item => item.id === id);
   foundItem.checked = !foundItem.checked;
+};
+
+//actually triggers the edit box
+const toggleEditForListItem = function (id) {
+  const editItem = store.items.find(item => item.id === id);
+  editItem.edit = !editItem.edit;
 };
 
 const handleItemCheckClicked = function () {
@@ -86,6 +126,29 @@ const handleItemCheckClicked = function () {
     const id = getItemIdFromElement(event.currentTarget);
     toggleCheckedForListItem(id);
     render();
+  });
+};
+//cancels the edit
+const cancelEdit = function(id) {
+  const index = store.items.findIndex(item => item.id === id);
+  store.items[index].edit = false;
+}
+//cancel edit button
+const handleCancelEditClicked = function () {
+  $('.js-shopping-list').on('click', '.cancel-edit', event => {
+    const id = getItemIdFromElement(event.currentTarget);
+    cancelEdit(id);
+    render();
+  });
+};
+
+//button enables edit text box
+const handleItemEditClicked = function () {
+  $('.js-shopping-list').on('click', '.js-item-edit', event => {
+    const id = getItemIdFromElement(event.currentTarget);
+    toggleEditForListItem(id);
+    render();
+    handleEditItem();
   });
 };
 
@@ -160,6 +223,9 @@ const handleShoppingList = function () {
   handleItemCheckClicked();
   handleDeleteItemClicked();
   handleToggleFilterClick();
+  handleItemEditClicked();
+  handleEditItem();
+  handleCancelEditClicked();
 };
 
 // when the page loads, call `handleShoppingList`
